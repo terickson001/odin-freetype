@@ -2,7 +2,7 @@ package freetype
 
 import "core:c"
 
-when ODIN_OS == "windows" {
+when ODIN_OS == .Windows {
 	foreign import freetype "freetype.lib";
 }
 
@@ -70,7 +70,7 @@ Bitmap :: struct {
     rows         : c.uint,
     width        : c.uint,
     pitch        : c.int,
-    buffer       : ^c.uchar,
+    buffer       : [^]c.uchar,
     num_grays    : c.ushort,
     pixel_mode   : c.char,
     palette_mode : c.uchar,
@@ -80,9 +80,9 @@ Bitmap :: struct {
 Bitmap_Size :: struct {
     height : i16,
     width  : i16,
-
+	
     size   : Pos,
-
+	
     x_ppem : Pos,
     y_ppem : Pos,
 }
@@ -96,26 +96,26 @@ Char_Map_Rec :: struct {
 
 Driver_Class_Rec :: struct {
     root             : Module_Class,
-
+	
     face_object_size : c.long,
     size_object_size : c.long,
     slot_object_size : c.long,
-
+	
     init_face        : Face_Init_Func,
     done_face        : Face_Done_Func,
-
+	
     init_size        : Size_Init_Func,
     done_size        : Size_Done_Func,
-
+	
     init_slot        : Slot_Init_Func,
     done_slot        : Slot_Done_Func,
-
+	
     load_glyph       : Slot_Load_Func,
-
+	
     get_kerning      : Face_Get_Kerning_Func,
     attach_file      : Face_Attach_Func,
     get_advances     : Face_Get_Advances_Func,
-
+	
     request_size     : Size_Request_Func,
     select_size      : Size_Select_Func,
 }
@@ -127,56 +127,56 @@ Driver_Rec :: struct {
     glyph_loader : Glyph_Loader,
 }
 
-Encoding :: enum {
+Encoding :: enum i32 {
     // TODO
 }
 
 Face_Rec :: struct {
     num_faces           : c.long,
     face_index          : c.long,
-
+	
     face_flags          : c.long,
     style_flags         : c.long,
-
+	
     num_glyphs          : c.long,
-
+	
     family_name         : cstring,
     style_name          : cstring,
-
+	
     num_fixed_sizes     : c.int,
     available_sizes     : Bitmap_Size,
-
+	
     num_charmaps        : c.int,
-    charmaps            : ^Char_Map,
-
+    charmaps            : [^]Char_Map,
+	
     generic             : Generic,
-
+	
     bbox                : B_Box,
-
+	
     units_per_em        : c.ushort,
     ascender            : c.short,
     descender           : c.short,
     height              : c.short,
-
+	
     max_advance_width   : c.short,
     max_advance_height  : c.short,
-
+	
     underline_position  : c.short,
     underline_thickness : c.short,
-
+	
     glyph               : Glyph_Slot,
     size                : Size,
     charmap             : Char_Map,
-
+	
     driver              : Driver,
     memory              : Memory,
     stream              : Stream,
-
+	
     sizes_list          : List_Rec,
-
+	
     auto_hint           : Generic,
     extensions          : rawptr,
-
+	
     internal            : Face_Internal,
 }
 
@@ -185,7 +185,7 @@ Generic :: struct {
     finalizer : Generic_Finalizer,
 }
 
-Glyph_Format :: enum {
+Glyph_Format :: enum i32 {
     // TODO
 }
 
@@ -203,21 +203,21 @@ Glyph_Loader_Rec :: struct {
     contours  : c.uint,
     subglyphs : c.uint,
     extra     : Bool,
-
+	
     base      : Glyph_Load_Rec,
     current   : Glyph_Load_Rec,
-
+	
     other     : rawptr,
 }
 
 Glyph_Metrics :: struct {
     width          : Pos,
     height         : Pos,
-
+	
     hori_bearing_x : Pos,
     hori_bearing_y : Pos,
     hori_advance   : Pos,
-
+	
     vert_bearing_x : Pos,
     vert_bearing_y : Pos,
     vert_advance   : Pos,
@@ -229,31 +229,31 @@ Glyph_Slot_Rec :: struct {
     next                : Glyph_Slot,
     glyph_index         : c.uint,
     generic             : Generic,
-
+	
     metrics             : Glyph_Metrics,
     linear_hori_advance : Fixed,
     linear_vert_advance : Fixed,
     advance             : Vector,
-
+	
     format              : Glyph_Format,
-
+	
     bitmap              : Bitmap,
     bitmap_left         : c.int,
     bitmap_top          : c.int,
-
+	
     outline             : Outline,
-
+	
     num_subglyphs       : c.uint,
     subglyphs           : Sub_Glyph,
-
+	
     control_data        : rawptr,
     control_len         : c.long,
-
+	
     lsb_delta           : Pos,
     rsb_delta           : Pos,
-
+	
     other               : rawptr,
-
+	
     internal            : Slot_Internal,
 }
 
@@ -306,9 +306,9 @@ Module_Class :: struct {
     module_name      : cstring,
     module_version   : Fixed,
     module_requires  : Fixed,
-
+	
     module_interface : rawptr,
-
+	
     module_init      : Module_Constructor,
     module_done      : Module_Destructor,
     get_interface    : Module_Requester,
@@ -323,11 +323,11 @@ Module_Rec :: struct {
 Outline :: struct {
     n_contours : c.short,
     n_points   : c.short,
-
+	
     points     : ^Vector,
     tags       : ^c.char,
     contours   : ^c.short,
-
+	
     flags      : c.int,
 }
 
@@ -336,23 +336,31 @@ Parameter :: struct {
     data : rawptr,
 }
 
-Render_Mode :: enum {
+Render_Mode :: enum i32 {
     Normal = 0,
     Light  = 1,
     Mono   = 2,
     LCD    = 3,
     LCD_V  = 4,
-
+	
     Max    = 5,
+}
+
+Load_Target :: enum i32 {
+	Normal = auto_cast ((i32(Render_Mode.Normal) & 15) << 16),
+	Light = auto_cast ((i32(Render_Mode.Light) & 15) << 16),
+	Mono = auto_cast ((i32(Render_Mode.Mono) & 15) << 16),
+	LCD = auto_cast ((i32(Render_Mode.LCD) & 15) << 16),
+	LCD_V = auto_cast ((i32(Render_Mode.LCD_V) & 15) << 16),
 }
 
 Size_Metrics :: struct {
     x_ppem      : c.ushort,
     y_ppem      : c.ushort,
-
+	
     x_scale     : Fixed,
     y_scale     : Fixed,
-
+	
     ascender    : Pos,
     descender   : Pos,
     height      : Pos,
@@ -380,7 +388,7 @@ Size_Request_Type :: enum {
     B_Box    = 2,
     Cell     = 3,
     Scale    = 4,
-
+	
     Max      = 5,
 }
 
@@ -393,12 +401,12 @@ Stream_Rec :: struct {
     base       : ^c.uchar,
     size       : c.ulong,
     pos        : c.ulong,
-
+	
     descriptor : Stream_Desc,
     pathname   : Stream_Desc,
     read       : Stream_IO_Func,
     close      : Stream_Close_Func,
-
+	
     memory     : Memory,
     cursor     : ^c.uchar,
     limit      : ^c.uchar,
@@ -416,17 +424,17 @@ Vector :: struct {
     x, y : Pos,
 }
 
-@(default_calling_convention="c")
+@(default_calling_convention="c", link_prefix="FT_")
 foreign freetype {
-    @(link_name="FT_Init_FreeType") init_free_type :: proc(library: ^Library) -> Error ---
-    @(link_name="FT_Done_FreeType") done_free_type :: proc(library: Library) -> Error ---
-
-    @(link_name="FT_New_Face")        new_face        :: proc(library: Library, file_path_name: cstring, face_index: c.long, face: ^Face) -> Error ---
-    @(link_name="FT_New_Memory_Face") new_memory_face :: proc(library: Library, file_base: ^byte, file_size, face_index: c.long, face: ^Face) -> Error ---
-    @(link_name="FT_Done_Face")       done_face       :: proc(face: Face) -> Error ---
-
-    @(link_name="FT_Load_Char")     load_char     :: proc(face: Face, char_code: c.ulong, load_flags: Load_Flags) -> Error ---
-    @(link_name="FT_Set_Char_Size") set_char_size :: proc(face: Face, char_width, char_height: F26Dot6, horz_resolution, vert_resolution: c.uint) -> Error ---
-
-    @(link_name="FT_Render_Glyph") render_glyph :: proc(slot: Glyph_Slot, render_mode: Render_Mode) -> Error ---
+	Init_FreeType :: proc(library: ^Library) -> Error ---
+		Done_FreeType :: proc(library: Library) -> Error ---
+		
+		New_Face        :: proc(library: Library, file_path_name: cstring, face_index: c.long, face: ^Face) -> Error ---
+		New_Memory_Face :: proc(library: Library, file_base: ^byte, file_size, face_index: c.long, face: ^Face) -> Error ---
+		Done_Face       :: proc(face: Face) -> Error ---
+		
+		Load_Char     :: proc(face: Face, char_code: c.ulong, load_flags: Load_Flags) -> Error ---
+		Set_Char_Size :: proc(face: Face, char_width, char_height: F26Dot6, horz_resolution, vert_resolution: c.uint) -> Error ---
+		
+		Render_Glyph :: proc(slot: Glyph_Slot, render_mode: Render_Mode) -> Error ---
 }
